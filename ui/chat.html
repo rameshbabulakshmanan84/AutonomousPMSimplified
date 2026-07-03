@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Project Manager</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .input-section {
+      margin-bottom: 30px;
+    }
+
+    .input-section label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 13px;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .action-button {
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .action-button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .action-button:active {
+      transform: translateY(0);
+    }
+
+    #messages {
+      margin-top: 30px;
+    }
+
+    .message {
+      margin-bottom: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      line-height: 1.6;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      background: #e3f2fd;
+      border-left: 4px solid #667eea;
+      color: #333;
+      font-style: italic;
+    }
+
+    .message.assistant {
+      background: white;
+      border-left: 4px solid #999;
+      color: #555;
+    }
+
+    /* Output Cards */
+    .output-card {
+      background: white;
+      border-radius: 12px;
+      border-left: 5px solid #667eea;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .output-card.charter {
+      border-left-color: #667eea;
+    }
+
+    .output-card.wbs {
+      border-left-color: #28a745;
+    }
+
+    .output-card.plan {
+      border-left-color: #ff9800;
+    }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .output-icon {
+      font-size: 24px;
+      margin-right: 12px;
+    }
+
+    .output-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .output-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .output-tab {
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: #999;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .output-tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .output-content {
+      background: #f9f9f9;
+      padding: 16px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #555;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .output-content.active {
+      display: block;
+    }
+
+    .table-container {
+      background: #f9f9f9;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      display: none;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .table-container.active {
+      display: block;
+    }
+
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .plan-table th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border: 1px solid #ddd;
+    }
+
+    .plan-table td {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      background: white;
+    }
+
+    .plan-table tr:nth-child(even) td {
+      background: #f5f5f5;
+    }
+
+    .plan-table tr:hover td {
+      background: #e8f0fe;
+    }
+
+    .output-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .output-button {
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .output-button:hover {
+      background: #5568d3;
+    }
+
+    .output-button.export {
+      background: #28a745;
+    }
+
+    .output-button.export:hover {
+      background: #218838;
+    }
+
+    .loading {
+      text-align: center;
+      color: #999;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    .loading::after {
+      content: "";
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: ""; }
+      40% { content: "."; }
+      60% { content: ".."; }
+      80%, 100% { content: "..."; }
+    }
+
+    .error {
+      background: #ffebee;
+      border-left-color: #f44336;
+      color: #c62828;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .action-button {
+        width: 100%;
+      }
+
+      textarea {
+        height: 120px;
+      }
+
+      .output-tabs {
+        flex-direction: column;
+      }
+
+      .plan-table {
+        font-size: 11px;
+      }
+
+      .plan-table th, .plan-table td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Autonomous Project Manager</h1>
+      <p>Transform your BRD into a complete project plan</p>
+    </div>
+
+    <div class="content">
+      <div class="input-section">
+        <label for="brdInput">Paste your BRD content below:</label>
+        <textarea id="brdInput" placeholder="Enter your Business Requirements Document (BRD) here..."></textarea>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-button" onclick="invokeAgent('generate charter')">📋 Generate Charter</button>
+        <button class="action-button" onclick="invokeAgent('generate wbs')">📊 Generate WBS</button>
+        <button class="action-button" onclick="invokeAgent('generate plan')">📅 Generate Plan</button>
+      </div>
+
+      <div id="messages"></div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+    let charter = null;
+    let wbs = null;
+    let plan = null;
+
+    // ============================================================================
+    // FLEXIBLE TABLE PARSER - Extract tasks from any format
+    // ============================================================================
+
+    function parsePlanToTable(content) {
+      /**
+       * Flexible parser that handles multiple task formats:
+       * - T1 - Task Name
+       * - Task 1: Task Name
+       * - 1. Task Name
+       * - Task Name (followed by details)
+       */
+      const tasks = [];
+      const lines = content.split('\n');
+      let currentTask = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        
+        if (!line) continue; // Skip empty lines
+
+        // Try multiple task ID patterns
+        let taskMatch = 
+          line.match(/^(T\d+)\s*[\-:]\s*(.+?)$/i) ||  // T1 - Name or T1: Name
+          line.match(/^Task\s+(\d+)[:\-]?\s*(.+?)$/i) ||  // Task 1: Name
+          line.match(/^(\d+)\.\s+(.+?)$/);  // 1. Name
+
+        if (taskMatch) {
+          if (currentTask) {
+            tasks.push(currentTask);
+          }
+          
+          const taskId = taskMatch[1].startsWith('T') ? taskMatch[1] : 'T' + taskMatch[1];
+          currentTask = {
+            id: taskId,
+            name: taskMatch[2].trim(),
+            owner: '-',
+            duration: '-',
+            cost: '-',
+            gate: '-',
+            dependencies: '-'
+          };
+          continue;
+        }
+
+        if (currentTask) {
+          // Extract any field: "Key: Value"
+          const fieldMatch = line.match(/^(Owner|Duration|Cost|Gate|Dependencies|Start Date|End Date|Status):\s*(.+?)$/i);
+          if (fieldMatch) {
+            const key = fieldMatch[1].toLowerCase();
+            const value = fieldMatch[2].trim();
+
+            if (key.includes('owner')) {
+              currentTask.owner = value;
+            } else if (key.includes('duration')) {
+              // Extract number from duration
+              const numMatch = value.match(/(\d+)/);
+              if (numMatch) {
+                currentTask.duration = numMatch[1] + ' hrs';
+              } else {
+                currentTask.duration = value;
+              }
+            } else if (key.includes('cost')) {
+              currentTask.cost = value;
+            } else if (key.includes('gate')) {
+              const gateNum = value.match(/(\d+)/);
+              currentTask.gate = gateNum ? 'Gate ' + gateNum[1] : value;
+            } else if (key.includes('dependencies')) {
+              if (value.toLowerCase() !== 'none' && value !== '-') {
+                currentTask.dependencies = value;
+              }
+            }
+          }
+        }
+      }
+
+      if (currentTask) {
+        tasks.push(currentTask);
+      }
+
+      return tasks;
+    }
+
+    function generateTable(tasks) {
+      /**
+       * Generate HTML table from parsed tasks
+       */
+      if (!tasks || tasks.length === 0) {
+        return '<p>No tasks found in plan</p>';
+      }
+
+      let html = `
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>Task Name</th>
+              <th>Owner</th>
+              <th>Duration</th>
+              <th>Cost</th>
+              <th>Gate</th>
+              <th>Dependencies</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (let task of tasks) {
+        html += `
+          <tr>
+            <td><strong>${task.id}</strong></td>
+            <td>${task.name}</td>
+            <td>${task.owner}</td>
+            <td>${task.duration}</td>
+            <td>${task.cost}</td>
+            <td>${task.gate}</td>
+            <td>${task.dependencies}</td>
+          </tr>
+        `;
+      }
+
+      html += `
+          </tbody>
+        </table>
+      `;
+
+      return html;
+    }
+
+    function generateTableView(planContent, containerId) {
+      /**
+       * Main function to generate table view from plan text
+       */
+      try {
+        const tasks = parsePlanToTable(planContent);
+        
+        if (!tasks || tasks.length === 0) {
+          document.getElementById(containerId).innerHTML = '<p>Unable to parse tasks from plan. Showing raw text in Text View.</p>';
+          return;
+        }
+
+        const tableHtml = generateTable(tasks);
+        document.getElementById(containerId).innerHTML = tableHtml;
+      } catch (error) {
+        console.error('Table generation error:', error);
+        document.getElementById(containerId).innerHTML = `<p>Error generating table: ${error.message}</p>`;
+      }
+    }
+
+    // ============================================================================
+    // MAIN APPLICATION LOGIC
+    // ============================================================================
+
+    async function invokeAgent(action) {
+      const brdContent = document.getElementById('brdInput').value.trim();
+      
+      if (action.includes('charter') && !brdContent) {
+        showMessage('assistant', 'Please paste your BRD content first.', 'error');
+        return;
+      }
+
+      if (action.includes('wbs') && !charter) {
+        showMessage('assistant', 'Please generate a charter first.', 'error');
+        return;
+      }
+
+      if (action.includes('plan') && !wbs) {
+        showMessage('assistant', 'Please generate a WBS first.', 'error');
+        return;
+      }
+
+      showMessage('user', action);
+      showLoading();
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: action,
+            budget: 250000
+          })
+        });
+
+        removeLoading();
+        const data = await response.json();
+
+        if (data.success) {
+          if (data.type === 'charter') {
+            charter = data.content;
+            showOutputCard(data.type, data.content, '📋');
+          } else if (data.type === 'wbs') {
+            wbs = data.content;
+            showOutputCard(data.type, data.content, '📊');
+          } else if (data.type === 'plan') {
+            plan = data.content;
+            showOutputCard(data.type, data.content, '📅');
+          }
+        } else {
+          showMessage('assistant', `Error: ${data.error}`, 'error');
+        }
+      } catch (error) {
+        removeLoading();
+        showMessage('assistant', 'Connection error. Please try again.', 'error');
+        console.error(error);
+      }
+    }
+
+    function showMessage(role, content, className = '') {
+      const messagesDiv = document.getElementById('messages');
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${role} ${className}`;
+      messageEl.textContent = content;
+      messagesDiv.appendChild(messageEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function showOutputCard(type, content, icon) {
+      const messagesDiv = document.getElementById('messages');
+      
+      const titles = {
+        'charter': 'Project Charter',
+        'wbs': 'Work Breakdown Structure',
+        'plan': 'Detailed Project Plan'
+      };
+
+      const card = document.createElement('div');
+      card.className = `output-card ${type}`;
+      
+      let html = `
+        <div class="output-header">
+          <div class="output-icon">${icon}</div>
+          <div class="output-title">${titles[type]}</div>
+        </div>
+      `;
+
+      // Add tabs for plan type
+      if (type === 'plan') {
+        html += `
+          <div class="output-tabs">
+            <button class="output-tab active" onclick="switchTab(event, 'text')">📄 Text View</button>
+            <button class="output-tab" onclick="switchTab(event, 'table')">📊 Table View</button>
+          </div>
+          <div class="output-content active" id="text-view-${type}">${escapeHtml(content)}</div>
+          <div class="table-container" id="table-view-${type}"></div>
+        `;
+      } else {
+        html += `<div class="output-content active">${escapeHtml(content)}</div>`;
+      }
+
+      html += `
+        <div class="output-actions">
+          <button class="output-button" onclick="copyToClipboard('${type}')">📋 Copy</button>
+          <button class="output-button export" onclick="exportToWord('${type}')">📥 Export to Word</button>
+        </div>
+      `;
+
+      card.innerHTML = html;
+      messagesDiv.appendChild(card);
+
+      // Generate table view if plan
+      if (type === 'plan') {
+        setTimeout(() => {
+          generateTableView(content, `table-view-${type}`);
+        }, 100);
+      }
+
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function switchTab(event, tabType) {
+      const card = event.target.closest('.output-card');
+      const tabs = card.querySelectorAll('.output-tab');
+      const contents = card.querySelectorAll('.output-content, .table-container');
+
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+
+      event.target.classList.add('active');
+
+      if (tabType === 'text') {
+        card.querySelector('.output-content').classList.add('active');
+      } else {
+        card.querySelector('.table-container').classList.add('active');
+      }
+    }
+
+    function showLoading() {
+      const messagesDiv = document.getElementById('messages');
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'loading';
+      loadingEl.id = 'loading-indicator';
+      loadingEl.textContent = 'Processing';
+      messagesDiv.appendChild(loadingEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function removeLoading() {
+      const loading = document.getElementById('loading-indicator');
+      if (loading) loading.remove();
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function copyToClipboard(type) {
+      const content = type === 'charter' ? charter : type === 'wbs' ? wbs : plan;
+      if (content) {
+        navigator.clipboard.writeText(content).then(() => {
+          alert('Copied to clipboard!');
+        }).catch(() => {
+          alert('Failed to copy');
+        });
+      }
+    }
+
+    async function exportToWord(type) {
+      const content = type === 'charter' ? charter : type === 'wbs' ? wbs : plan;
+      if (!content) {
+        alert('No content to export');
+        return;
+      }
+
+      try {
+        const response = await fetch('/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: type,
+            content: content
+          })
+        });
+
+        if (!response.ok) {
+          alert('Export failed');
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${type}_${new Date().getTime()}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        alert('Export failed: ' + error);
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
