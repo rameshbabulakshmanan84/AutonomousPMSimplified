@@ -1,4 +1,4 @@
-from sympy import re
+#from sympy import re
 
 from agent.charter_tools_simple import generate_charter
 from agent.planning_tools import generate_wbs, generate_detailed_plan
@@ -9,11 +9,11 @@ charter_text_global = None
 wbs_global = None
 plan_global = None
 
-from tabulate import tabulate
+#from tabulate import tabulate
 #formyat helper function to return a structured response
 
 
-
+'''
 def format_plan_table(plan_text: str) -> str:
     rows = []
     for line in plan_text.split("\n"):
@@ -45,7 +45,7 @@ def format_plan_table(plan_text: str) -> str:
     headers = ["Task ID", "Task Name", "Owner", "Duration", "Cost", "Gate", "Dependencies"]
     return tabulate(rows, headers=headers, tablefmt="grid")
 
-
+'''
 #format helper function to return a structured response
 def format_output(text:str,output_type:str)->str:
     #text = clean_markdown(text)
